@@ -60,36 +60,66 @@ public final class System implements Modified {
 		case 0:	// type boolean
 			int srcStart = US.REF(src) + srcPos;
 			int dstStart = US.REF(dest) + destPos;
-			for (int i = 0; i < length; i++) {
-				US.PUT1(dstStart + i, US.GET1(srcStart + i));
+			if (srcStart > dstStart) {	// regions might overlap
+				for (int i = 0; i < length; i++) {
+					US.PUT1(dstStart + i, US.GET1(srcStart + i));
+				}
+			} else {
+				for (int i = length - 1;  i >= 0; i--) {
+					US.PUT1(dstStart + i, US.GET1(srcStart + i));
+				}
 			}
 			break;
 		case 1:
 			srcStart = US.REF(src) + srcPos;
 			dstStart = US.REF(dest) + destPos;
-			for (int i = 0; i < length; i++) {
-				US.PUT1(dstStart + i, US.GET1(srcStart + i));
+			if (srcStart > dstStart) {	// regions might overlap
+				for (int i = 0; i < length; i++) {
+					US.PUT1(dstStart + i, US.GET1(srcStart + i));
+				}
+			} else {
+				for (int i = length - 1;  i >= 0; i--) {
+					US.PUT1(dstStart + i, US.GET1(srcStart + i));
+				}
 			}
 			break;
 		case 2:
 			srcStart = US.REF(src) + srcPos*2;
 			dstStart = US.REF(dest) + destPos*2;
-			for (int i = 0; i < length; i++) {
-				US.PUT2(dstStart + i*2, US.GET2(srcStart + i*2));
+			if (srcStart > dstStart) {	// regions might overlap
+				for (int i = 0; i < length; i++) {
+					US.PUT2(dstStart + i*2, US.GET2(srcStart + i*2));
+				}
+			} else {
+				for (int i = length - 1;  i >= 0; i--) {
+					US.PUT2(dstStart + i*2, US.GET2(srcStart + i*2));
+				}
 			}
 			break;
 		case 4:
 			srcStart = US.REF(src) + srcPos*4;
 			dstStart = US.REF(dest) + destPos*4;
-			for (int i = 0; i < length; i++) {
-				US.PUT4(dstStart + i*4, US.GET4(srcStart + i*4));
+			if (srcStart > dstStart) {	// regions might overlap
+				for (int i = 0; i < length; i++) {
+					US.PUT4(dstStart + i*4, US.GET4(srcStart + i*4));
+				}
+			} else {
+				for (int i = length - 1;  i >= 0; i--) {
+					US.PUT4(dstStart + i*4, US.GET4(srcStart + i*4));
+				}
 			}
 			break;
 		case 8:
 			srcStart = US.REF(src) + srcPos*8;
 			dstStart = US.REF(dest) + destPos*8;
-			for (int i = 0; i < length; i++) {
-				US.PUT8(dstStart + i*8, US.GET8(srcStart + i*8));
+			if (srcStart > dstStart) {	// regions might overlap
+				for (int i = 0; i < length; i++) {
+					US.PUT8(dstStart + i*8, US.GET8(srcStart + i*8));
+				}
+			} else {
+				for (int i = length - 1;  i >= 0; i--) {
+					US.PUT8(dstStart + i*8, US.GET8(srcStart + i*8));
+				}
 			}
 			break;
 		default: 
