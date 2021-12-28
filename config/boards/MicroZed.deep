@@ -208,8 +208,8 @@ board MicroZed {
 		}
 	}
 
-	runconfiguration BootFromQSPIthenJTAG {
-		description = "boot from QSPI flash and load program to ram";
+	runconfiguration BootFromFlashThenJTAG {
+		description = "boot from flash memory and load program to ram";
 		system {
 			systemtable: systab@InternalRam.SysTab;
 		}
@@ -220,8 +220,8 @@ board MicroZed {
 		}
 	}
 
-	runconfiguration BootFromQSPI {
-		description = "boot from QSPI flash";
+	runconfiguration BootFromFlash {
+		description = "boot from flash memory";
 		system {
 			systemtable: systab@ExternalFlash.SysTab;
 		}
