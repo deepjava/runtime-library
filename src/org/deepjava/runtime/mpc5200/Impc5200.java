@@ -2,7 +2,7 @@ package org.deepjava.runtime.mpc5200;
 
 import org.deepjava.runtime.ppc32.Ippc32;
 
-// Auto generated file (2021-02-17 13:57:50)
+// Auto generated file (2022-02-04 09:19:20)
 
 public interface Impc5200 extends Ippc32 {
 

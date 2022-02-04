@@ -2,7 +2,7 @@ package org.deepjava.runtime.zynq7000;
 
 import org.deepjava.runtime.arm32.Iarm32;
 
-// Auto generated file (2021-02-17 13:57:50)
+// Auto generated file (2022-02-04 09:19:20)
 
 public interface Izynq7000 extends Iarm32 {
 

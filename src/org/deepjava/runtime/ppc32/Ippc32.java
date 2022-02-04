@@ -1,6 +1,6 @@
 package org.deepjava.runtime.ppc32;
 
-// Auto generated file (2021-02-17 13:57:50)
+// Auto generated file (2022-02-04 09:19:20)
 
 public interface Ippc32 {
 
