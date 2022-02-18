@@ -360,7 +360,7 @@ public class RTBoardTest extends Task {
 	private void adcTest() {
 		switch (state) {
 		case sendMessage:
-			System.out.println("choose ADC channel: 0(AIn1) or 1(AIn1), Break -> ESC");
+			System.out.println("choose ADC channel: 0(AIn1) or 1(AIn2), Break -> ESC");
 			state = State.wait;
 			break;
 		case wait:
