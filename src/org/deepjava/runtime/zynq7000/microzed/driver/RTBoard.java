@@ -67,7 +67,7 @@ public class RTBoard implements IMicroZed {
 	 * Writes a value to an regular analog output <code>channel</code>
 	 * The channel 0 is denoted with <code>AOut1</code> and channel 1 is denoted <code>AOut2</code>. 
 	 * The range of <code>val</code> is between -10..+10 corresponding to Volts
-	 * The resolution of the DAC is 12 bit.
+	 * The resolution of the DAC is 16 bit.
 	 * 
 	 * @param channel
 	 *            Channel with analog signal.
@@ -75,7 +75,10 @@ public class RTBoard implements IMicroZed {
 	 *            Value in Volts (-10..+10).
 	 */
 	public static void analogOut(int channel, float val) {
-		dac.setValue(channel, (int)(val / 10 * dacRes) + dacRes);
+		int setVal = (int)(val / 10 * dacRes) + dacRes;
+		if (setVal >= 0x10000) setVal = 0xffff;
+		if (setVal < 0) setVal = 0;
+		dac.setValue(channel, setVal);
 	}
 
 	/**
