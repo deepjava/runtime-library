@@ -38,9 +38,9 @@ public class RTBoardTest extends Task {
 	private static final boolean enableLedTest = true;
 	private static final boolean enableButtonTest = true;
 	private static final boolean enableDioTest = true; 
-	private static final boolean enableAnalogTest = true; 
 	private static final boolean enableDacTest = true; 
 	private static final boolean enableAdcTest = true;
+	private static final boolean enableAnalogTest = true; 
 
 	// Commands
 	private static final byte breakCmd = 0x1B, contCmd = 0x0D;
@@ -70,7 +70,7 @@ public class RTBoardTest extends Task {
 		case sendMessage:
 			System.out.println("\nChoose action: ");
 			System.out.println("\trun leds -> 1, read buttons -> 2, test DIO -> 3");
-			System.out.println("\tanalog -> 4, test dac -> 5, test adc -> 6");
+			System.out.println("\ttest dac -> 4, test adc -> 5, analog -> 6");
 			state = State.wait;
 			break;
 		case wait:
@@ -96,19 +96,19 @@ public class RTBoardTest extends Task {
 				test = Test.dio;
 				break;
 			} else if (cmd == '4') {
-				System.out.println("test analog in / out");
-				state = State.sendMessage;
-				test = Test.analog;
-				break;
-			} else if (cmd == '5') {
 				System.out.println("test analog out");
 				state = State.sendMessage;
 				test = Test.dac;
 				break;
-			} else if (cmd == '6') {
+			} else if (cmd == '5') {
 				System.out.println("test analog in");
 				state = State.sendMessage;
 				test = Test.adc;
+				break;
+			} else if (cmd == '6') {
+				System.out.println("test analog in / out");
+				state = State.sendMessage;
+				test = Test.analog;
 				break;
 			}
 			break;
@@ -207,73 +207,6 @@ public class RTBoardTest extends Task {
 				ioCtr = 0;
 			}
 			state = State.sendMessage;
-			break;
-		default:
-			test = Test.menu;
-			state = State.sendMessage;
-		}
-	}
-
-	/**
-	 * Gibt auf den analog Ausgängen des RTBoards einen Sägezahn mit einer
-	 * Frequenz von ca. 1/4Hz aus.
-	 */
-	private void analogTest() {
-		switch (state) {
-		case sendMessage:
-			System.out.print("Connect AOut");
-			System.out.print(dacCtr + 1);
-			System.out.print(" to AIn");
-			System.out.print(dacCtr + 1);
-			System.out.println(": Continue -> Enter, Break -> ESC");
-			state = State.wait;
-			break;
-		case wait:
-			int cmd = 0;
-			try {
-				if (System.in.available() > 0) cmd = System.in.read();
-			} catch (IOException e) {break;}
-			if (cmd == breakCmd) {
-				state = State.sendMessage;
-				test = Test.menu;
-				break;
-			} else if (cmd == contCmd) {
-				voltage1 = -9.5f;
-				nofError = 0;
-				RTBoard.analogOut(dacCtr, voltage1);
-				System.out.print("testing "); System.out.println(dacCtr);
-				state = State.runTest;
-			} 
-			break;
-		case runTest:
-			if (count < 20) {
-				float diff = Math.abs(RTBoard.analogIn(dacCtr) - voltage1);
-				if (diff < 0.5) {
-					System.out.print("\tSuccess at ");
-					System.out.print(voltage1);
-					System.out.print("V, diff = ");
-					System.out.println(diff);
-				} else {
-					nofError++;
-					System.out.print("\tFailed at ");
-					System.out.print(voltage1);
-					System.out.print("V, diff = ");
-					System.out.println(diff);
-				}
-				voltage1 += 1;
-				RTBoard.analogOut(dacCtr, voltage1);
-				count++;
-			} else {
-				count = 0;
-				if (dacCtr < 1) dacCtr++;
-				else {
-					test = Test.menu;
-					if (nofError > 0) System.out.println("Test failed");
-					else System.out.println("Test ok");
-					dacCtr = 0;
-				}
-				state = State.sendMessage;
-			}
 			break;
 		default:
 			test = Test.menu;
@@ -399,6 +332,74 @@ public class RTBoardTest extends Task {
 		}
 	}
 	
+	/**
+	 * Gibt auf den analog Ausgängen des RTBoards einen Sägezahn mit einer
+	 * Frequenz von ca. 1/4Hz aus.
+	 */
+	private void analogTest() {
+		switch (state) {
+		case sendMessage:
+			System.out.print("Connect AOut");
+			System.out.print(dacCtr + 1);
+			System.out.print(" to AIn");
+			System.out.print(dacCtr + 1);
+			System.out.println(": Continue -> Enter, Break -> ESC");
+			state = State.wait;
+			break;
+		case wait:
+			int cmd = 0;
+			try {
+				if (System.in.available() > 0) cmd = System.in.read();
+			} catch (IOException e) {break;}
+			if (cmd == breakCmd) {
+				state = State.sendMessage;
+				test = Test.menu;
+				dacCtr = 0;
+				break;
+			} else if (cmd == contCmd) {
+				voltage1 = -9.5f;
+				nofError = 0;
+				RTBoard.analogOut(dacCtr, voltage1);
+				System.out.print("testing "); System.out.println(dacCtr);
+				state = State.runTest;
+			} 
+			break;
+		case runTest:
+			if (count < 20) {
+				float diff = Math.abs(RTBoard.analogIn(dacCtr) - voltage1);
+				if (diff < 0.5) {
+					System.out.print("\tSuccess at ");
+					System.out.print(voltage1);
+					System.out.print("V, diff = ");
+					System.out.println(diff);
+				} else {
+					nofError++;
+					System.out.print("\tFailed at ");
+					System.out.print(voltage1);
+					System.out.print("V, diff = ");
+					System.out.println(diff);
+				}
+				voltage1 += 1;
+				RTBoard.analogOut(dacCtr, voltage1);
+				count++;
+			} else {
+				count = 0;
+				if (dacCtr < 1) dacCtr++;
+				else {
+					test = Test.menu;
+					if (nofError > 0) System.out.println("Test failed");
+					else System.out.println("Test ok");
+					dacCtr = 0;
+				}
+				state = State.sendMessage;
+			}
+			break;
+		default:
+			test = Test.menu;
+			dacCtr = 0;
+			state = State.sendMessage;
+		}
+	}
 
 	public void action() {
 		switch (test) {
@@ -423,12 +424,6 @@ public class RTBoardTest extends Task {
 			else
 				test = Test.menu;
 			break;
-		case analog:
-			if (enableAnalogTest)
-				analogTest();
-			else
-				test = Test.menu;
-			break;
 		case dac:
 			if (enableDacTest)
 				dacTest();
@@ -438,6 +433,12 @@ public class RTBoardTest extends Task {
 		case adc:
 			if (enableAdcTest)
 				adcTest();
+			else
+				test = Test.menu;
+			break;
+		case analog:
+			if (enableAnalogTest)
+				analogTest();
 			else
 				test = Test.menu;
 			break;
@@ -460,5 +461,5 @@ public class RTBoardTest extends Task {
 	}
 }
 
-enum Test {menu, led, button, dio, analog, dac, adc}
+enum Test {menu, led, button, dio, dac, adc, analog}
 enum State {sendMessage, wait, runTest, getChannel, sendVoltage}
