@@ -28,6 +28,7 @@ cpu zynq7010 {
 		spiController = ioReg + 0;						# SPI Controller
 		slcrReg = 0xf8000000;							# System level control registers
 		ddrReg = 0xf8006000;							# DDR memory control registers
+		ttcReg = 0xf8000000;							# Triple timer control registers
 		cpuPrivateReg = 0xf8900000;						# CPU private registers
 		interruptCtlr = cpuPrivateReg + 0x600100;		# Interrupt controller registers
 		globalTimer = cpuPrivateReg + 0x600200;			# Global Timer
@@ -1119,6 +1120,152 @@ cpu zynq7010 {
 		register LPDDR_CTRL3 {
 			 type = IOR;
 			 addr = ddrReg + 0x2b4;
+			 size = 4;
+		}
+
+		# Triple timer control registers
+		
+		register TTC0CLKCTRL0 {
+			 type = IOR;
+			 addr = ttcReg + 0x1000;
+			 size = 4;
+		}
+
+		register TTC0CLKCTRL1 {
+			 type = IOR;
+			 addr = ttcReg + 0x1004;
+			 size = 4;
+		}
+
+		register TTC0CLKCTRL2 {
+			 type = IOR;
+			 addr = ttcReg + 0x1008;
+			 size = 4;
+		}
+
+		register TTC0CTRL0 {
+			 type = IOR;
+			 addr = ttcReg + 0x100c;
+			 size = 4;
+		}
+
+		register TTC0CTRL1 {
+			 type = IOR;
+			 addr = ttcReg + 0x1010;
+			 size = 4;
+		}
+
+		register TTC0CTRL2 {
+			 type = IOR;
+			 addr = ttcReg + 0x1014;
+			 size = 4;
+		}
+
+		register TTC0CNT0 {
+			 type = IOR;
+			 addr = ttcReg + 0x1018;
+			 size = 4;
+		}
+
+		register TTC0CNT1 {
+			 type = IOR;
+			 addr = ttcReg + 0x101c;
+			 size = 4;
+		}
+
+		register TTC0CNT2 {
+			 type = IOR;
+			 addr = ttcReg + 0x1020;
+			 size = 4;
+		}
+
+		register TTC0CNT0MATCH0 {
+			 type = IOR;
+			 addr = ttcReg + 0x1030;
+			 size = 4;
+		}
+
+		register TTC0CNT1MATCH0 {
+			 type = IOR;
+			 addr = ttcReg + 0x1034;
+			 size = 4;
+		}
+
+		register TTC0CNT2MATCH0 {
+			 type = IOR;
+			 addr = ttcReg + 0x1038;
+			 size = 4;
+		}
+
+		register TTC0CNT0MATCH1 {
+			 type = IOR;
+			 addr = ttcReg + 0x103c;
+			 size = 4;
+		}
+
+		register TTC0CNT1MATCH1 {
+			 type = IOR;
+			 addr = ttcReg + 0x1040;
+			 size = 4;
+		}
+
+		register TTC0CNT2MATCH1 {
+			 type = IOR;
+			 addr = ttcReg + 0x1044;
+			 size = 4;
+		}
+
+		register TTC0CNT0MATCH2 {
+			 type = IOR;
+			 addr = ttcReg + 0x1048;
+			 size = 4;
+		}
+
+		register TTC0CNT1MATCH2 {
+			 type = IOR;
+			 addr = ttcReg + 0x104c;
+			 size = 4;
+		}
+
+		register TTC0CNT2MATCH2 {
+			 type = IOR;
+			 addr = ttcReg + 0x1050;
+			 size = 4;
+		}
+
+		register TTC0CNT0IR {
+			 type = IOR;
+			 addr = ttcReg + 0x1054;
+			 size = 4;
+		}
+
+		register TTC0CNT1IR {
+			 type = IOR;
+			 addr = ttcReg + 0x1058;
+			 size = 4;
+		}
+
+		register TTC0CNT2IR {
+			 type = IOR;
+			 addr = ttcReg + 0x105c;
+			 size = 4;
+		}
+
+		register TTC0CNT0IE {
+			 type = IOR;
+			 addr = ttcReg + 0x1060;
+			 size = 4;
+		}
+
+		register TTC0CNT1IE {
+			 type = IOR;
+			 addr = ttcReg + 0x1064;
+			 size = 4;
+		}
+
+		register TTC0CNT2IE {
+			 type = IOR;
+			 addr = ttcReg + 0x1068;
 			 size = 4;
 		}
 

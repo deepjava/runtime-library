@@ -2,7 +2,7 @@ package org.deepjava.runtime.zynq7000;
 
 import org.deepjava.runtime.arm32.Iarm32;
 
-// Auto generated file (2021-02-17 13:57:50)
+// Auto generated file (2022-10-10 19:28:19)
 
 public interface Izynq7000 extends Iarm32 {
 
@@ -12,6 +12,7 @@ public interface Izynq7000 extends Iarm32 {
 	public static final int globalTimer = 0xf8f00200;
 	public static final int interruptCtlr = 0xf8f00100;
 	public static final int cpuPrivateReg = 0xf8900000;
+	public static final int ttcReg = 0xf8000000;
 	public static final int ddrReg = 0xf8006000;
 	public static final int slcrReg = 0xf8000000;
 	public static final int spiController = 0xe0000000;
@@ -201,6 +202,30 @@ public interface Izynq7000 extends Iarm32 {
 	public static final int LPDDR_CTRL1 = 0xf80062ac;
 	public static final int LPDDR_CTRL2 = 0xf80062b0;
 	public static final int LPDDR_CTRL3 = 0xf80062b4;
+	public static final int TTC0CLKCTRL0 = 0xf8001000;
+	public static final int TTC0CLKCTRL1 = 0xf8001004;
+	public static final int TTC0CLKCTRL2 = 0xf8001008;
+	public static final int TTC0CTRL0 = 0xf800100c;
+	public static final int TTC0CTRL1 = 0xf8001010;
+	public static final int TTC0CTRL2 = 0xf8001014;
+	public static final int TTC0CNT0 = 0xf8001018;
+	public static final int TTC0CNT1 = 0xf800101c;
+	public static final int TTC0CNT2 = 0xf8001020;
+	public static final int TTC0CNT0MATCH0 = 0xf8001030;
+	public static final int TTC0CNT1MATCH0 = 0xf8001034;
+	public static final int TTC0CNT2MATCH0 = 0xf8001038;
+	public static final int TTC0CNT0MATCH1 = 0xf800103c;
+	public static final int TTC0CNT1MATCH1 = 0xf8001040;
+	public static final int TTC0CNT2MATCH1 = 0xf8001044;
+	public static final int TTC0CNT0MATCH2 = 0xf8001048;
+	public static final int TTC0CNT1MATCH2 = 0xf800104c;
+	public static final int TTC0CNT2MATCH2 = 0xf8001050;
+	public static final int TTC0CNT0IR = 0xf8001054;
+	public static final int TTC0CNT1IR = 0xf8001058;
+	public static final int TTC0CNT2IR = 0xf800105c;
+	public static final int TTC0CNT0IE = 0xf8001060;
+	public static final int TTC0CNT1IE = 0xf8001064;
+	public static final int TTC0CNT2IE = 0xf8001068;
 	public static final int ICCICR = 0xf8f00100;
 	public static final int ICCPMR = 0xf8f00104;
 	public static final int ICCBPR = 0xf8f00108;
