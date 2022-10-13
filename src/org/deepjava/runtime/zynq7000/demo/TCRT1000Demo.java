@@ -31,7 +31,7 @@ import org.deepjava.runtime.zynq7000.driver.UART;
 /**
  * Demo application for the TCRT1000 driver.
  * The application reads periodically the values of four sensors
- * and print them every second to the UART1.
+ * and prints them every second to the UART1.
  */
 public class TCRT1000Demo extends Task {
 	

@@ -24,7 +24,10 @@ import org.deepjava.flink.subdevices.FlinkADC;
 import org.deepjava.flink.subdevices.FlinkGPIO;
 import org.deepjava.runtime.Kernel;
 import org.deepjava.runtime.arm32.Task;
+import org.deepjava.runtime.util.Actionable;
+import org.deepjava.runtime.zynq7000.IrqInterrupt;
 import org.deepjava.runtime.zynq7000.Izynq7000;
+import org.deepjava.unsafe.US;
 
 /* CHANGES:
  * 28.04.2020 NTB/UG	creation
@@ -39,10 +42,11 @@ import org.deepjava.runtime.zynq7000.Izynq7000;
  * values.<br>
  * All the sensors are repetitively sampled within 16ms, regardless of the number of sensors.<br>  
  */
-public class TCRT1000 extends Task implements Izynq7000, FlinkDefinitions {
+public class TCRT1000 extends IrqInterrupt implements Actionable, Izynq7000, FlinkDefinitions {
 
 	private static final byte maxNofSensors = 16;
-	private static TCRT1000 thisSngTask; // Singleton DistSense Task
+	private static TCRT1000 sense; // singleton
+	private Task t;
 	private int nofSensors; // number of connected sensors
 	private int trigPin; // trigger pin
 	private int addrPin0, addrPin1, addrPin2, addrPin3; // address pins
@@ -50,7 +54,6 @@ public class TCRT1000 extends Task implements Izynq7000, FlinkDefinitions {
 	private static FlinkGPIO gpio;
 	private static FlinkADC adc;
 	private static State state;
-	private static long time;
 	private short[] resultVal = new short[maxNofSensors];
 
 	/**
@@ -58,13 +61,20 @@ public class TCRT1000 extends Task implements Izynq7000, FlinkDefinitions {
 	 * @return Instance of TCRT1000
 	 */
 	public static TCRT1000 getInstance() {
-		if (thisSngTask == null) {
-			thisSngTask = new TCRT1000();
+		if (sense == null) {
+			sense = new TCRT1000();
+			sense.t = new Task(sense);
+			sense.t.period = 1;
+			IrqInterrupt.install(sense, 42);
+			// use triple timer 0, counter 0
+			US.PUT4(TTC0CLKCTRL0, 0xd);	// prescale, clk is now 133MHz / 128 = 1.039MHz, period = 0.9624us
+			US.PUT4(TTC0CNT0MATCH0, 90);	// match after approx. 120us
+			US.PUT4(TTC0CNT0IE, 0x2);	// enable interrupt when matching
 		}
-		return thisSngTask;
+		return sense;
 	}
 	
-	private TCRT1000() {}
+	private TCRT1000() { }
 
 	/**
 	 * Read the value of the given sensor number
@@ -82,7 +92,6 @@ public class TCRT1000 extends Task implements Izynq7000, FlinkDefinitions {
 	public void action() {
 		switch (state) {
 		case Start:
-			time = Kernel.timeUs();
 			if (sensAdr % 2 == 0) gpio.setValue(addrPin0, false);
 			else gpio.setValue(addrPin0, true);
 			if (sensAdr / 2 % 2 == 0) gpio.setValue(addrPin1, false);
@@ -94,29 +103,20 @@ public class TCRT1000 extends Task implements Izynq7000, FlinkDefinitions {
 			gpio.setValue(trigPin, true);
 			gpio.setValue(trigPin, false);
 			state = State.Sample;
+			US.PUT4(TTC0CTRL0,0x39);	// reset timer
+			US.PUT4(TTC0CTRL0,0x28);	// start timer, match mode
 			break;
 		case Sample:
-			if (Kernel.timeUs() - time > 100) {
-				resultVal[sensAdr] = (short) adc.getValue(0);
-				state = State.Wait;
-			}
-			break;
-		case Wait:
-			if (Kernel.timeUs() - time > 1000) {
-				sensAdr = (sensAdr + 1) % maxNofSensors;
-				if (sensAdr < nofSensors) state = State.Start;
-				else {
-					state = State.Idle;
-					time = Kernel.timeUs();
-				}
-			}
+			US.GET4(TTC0CNT0IR);	// reset interrupt flag
+			US.PUT4(TTC0CTRL0,0x29);	// stop triple timer counter 0
+			resultVal[sensAdr] = (short) adc.getValue(0);
+			sensAdr = (sensAdr + 1) % maxNofSensors;
+			if (sensAdr < nofSensors) state = State.Start;
+			else state = State.Idle;
 			break;
 		case Idle:
-			if (Kernel.timeUs() - time > 1000) {
-				sensAdr = (sensAdr + 1) % maxNofSensors;
-				time = Kernel.timeUs();
-				if (sensAdr == 0) state = State.Start;
-			}
+			sensAdr = (sensAdr + 1) % maxNofSensors;
+			if (sensAdr == 0) state = State.Start;
 			break;
 		default:
 			break;
@@ -155,7 +155,7 @@ public class TCRT1000 extends Task implements Izynq7000, FlinkDefinitions {
 	 * Stop reading the sensors.
 	 */
 	public void stop() {
-		Task.remove(thisSngTask);
+		Task.remove(t);
 	}
 
 	/**
@@ -166,11 +166,11 @@ public class TCRT1000 extends Task implements Izynq7000, FlinkDefinitions {
 	public void start() {
 		state = State.Start;
 		sensAdr = 0;
-		Task.install(thisSngTask);
+		Task.install(t);
 	}
 
 }
 
 enum State {
-	Start, Sample, Wait, Idle
+	Start, Sample, Idle
 }
