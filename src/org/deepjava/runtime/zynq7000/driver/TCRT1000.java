@@ -22,7 +22,6 @@ import org.deepjava.flink.core.FlinkDefinitions;
 import org.deepjava.flink.core.FlinkDevice;
 import org.deepjava.flink.subdevices.FlinkADC;
 import org.deepjava.flink.subdevices.FlinkGPIO;
-import org.deepjava.runtime.Kernel;
 import org.deepjava.runtime.arm32.Task;
 import org.deepjava.runtime.util.Actionable;
 import org.deepjava.runtime.zynq7000.IrqInterrupt;
@@ -31,6 +30,7 @@ import org.deepjava.unsafe.US;
 
 /* CHANGES:
  * 28.04.2020 NTB/UG	creation
+ * 09.12.2022 OST/UG	use triple timer and interrupt for pulse duration
  */
 
 /**
@@ -68,7 +68,7 @@ public class TCRT1000 extends IrqInterrupt implements Actionable, Izynq7000, Fli
 			IrqInterrupt.install(sense, 42);
 			// use triple timer 0, counter 0
 			US.PUT4(TTC0CLKCTRL0, 0xd);	// prescale, clk is now 133MHz / 128 = 1.039MHz, period = 0.9624us
-			US.PUT4(TTC0CNT0MATCH0, 90);	// match after approx. 120us
+			US.PUT4(TTC0CNT0MATCH0, 68);	// match after approx. 90us
 			US.PUT4(TTC0CNT0IE, 0x2);	// enable interrupt when matching
 		}
 		return sense;
@@ -87,19 +87,12 @@ public class TCRT1000 extends IrqInterrupt implements Actionable, Izynq7000, Fli
 	}
 
 	/**
-	 * Background task loop: Do not call this method!
+	 * This method is called by the task and the interrupt handler.
+	 * Do not call this method!
 	 */
 	public void action() {
 		switch (state) {
 		case Start:
-			if (sensAdr % 2 == 0) gpio.setValue(addrPin0, false);
-			else gpio.setValue(addrPin0, true);
-			if (sensAdr / 2 % 2 == 0) gpio.setValue(addrPin1, false);
-			else gpio.setValue(addrPin1, true);
-			if (sensAdr / 4 % 2 == 0) gpio.setValue(addrPin2, false);
-			else gpio.setValue(addrPin2, true);
-			if (sensAdr / 8 % 2 == 0) gpio.setValue(addrPin3, false);
-			else gpio.setValue(addrPin3, true);
 			gpio.setValue(trigPin, true);
 			gpio.setValue(trigPin, false);
 			state = State.Sample;
@@ -111,12 +104,42 @@ public class TCRT1000 extends IrqInterrupt implements Actionable, Izynq7000, Fli
 			US.PUT4(TTC0CTRL0,0x29);	// stop triple timer counter 0
 			resultVal[sensAdr] = (short) adc.getValue(0);
 			sensAdr = (sensAdr + 1) % maxNofSensors;
-			if (sensAdr < nofSensors) state = State.Start;
+			if (sensAdr < nofSensors) {
+				state = State.Start;
+				if (addrPin0 >= 0) {
+					if (sensAdr % 2 == 0) gpio.setValue(addrPin0, false);
+					else gpio.setValue(addrPin0, true);
+				}
+				if (addrPin1 >= 0) {
+					if (sensAdr / 2 % 2 == 0) gpio.setValue(addrPin1, false);
+					else gpio.setValue(addrPin1, true);
+				}
+				if (addrPin2 >= 0) {
+					if (sensAdr / 4 % 2 == 0) gpio.setValue(addrPin2, false);
+					else gpio.setValue(addrPin2, true);
+				}
+				if (addrPin3 >= 0) {
+					if (sensAdr / 8 % 2 == 0) gpio.setValue(addrPin3, false);
+					else gpio.setValue(addrPin3, true);
+				}
+			}
 			else state = State.Idle;
 			break;
 		case Idle:
 			sensAdr = (sensAdr + 1) % maxNofSensors;
 			if (sensAdr == 0) state = State.Start;
+			if (addrPin0 >= 0) {
+				gpio.setValue(addrPin0, false);
+			}
+			if (addrPin1 >= 0) {
+				gpio.setValue(addrPin1, false);
+			}
+			if (addrPin2 >= 0) {
+				gpio.setValue(addrPin2, false);
+			}
+			if (addrPin3 >= 0) {
+				gpio.setValue(addrPin3, false);
+			}
 			break;
 		default:
 			break;
