@@ -266,7 +266,7 @@ public class Kernel implements IMicroZed, IdeepCompilerConstants {
 					US.ASM("mov r15, r0");
 				} else {	// kernel
 					loopAddr = US.ADR_OF_METHOD("org/deepjava/runtime/zynq7000/microzed/Kernel/loop");
-					US.ASM("cpsie i");	// enable IRQ
+					US.ASM("cpsie ia");	// enable IRQ and data abort exceptions
 				}
 			}
 
