@@ -160,12 +160,12 @@ public class Kernel implements IMicroZed, IdeepCompilerConstants {
 		
 		// configure PLL if loading from JTAG, in case of POR, the PLL will be setup by FSBL
 		if (!US.BIT(REBOOT_STATUS, 22)) {	
-			US.PUT4(DDR_PLL_CFG, 0x12c220);	// configure DDR PLL for 1067MHZ with 33.33MHz quartz
-			US.PUT4(DDR_PLL_CTRL, 0x20011);	// divider = 32, bypass, reset
-			US.PUT4(DDR_PLL_CTRL, US.GET4(DDR_PLL_CTRL) & ~1);	// deassert reset
-			while (!US.BIT(PLL_STATUS, 1));	// wait to lock
-			US.PUT4(DDR_PLL_CTRL, US.GET4(DDR_PLL_CTRL) & ~0x10);	// no bypass
-			US.PUT4(DDR_CLK_CTRL, 0xc200003);	// 2x-divisor = 3, 3x-divisor = 2
+//			US.PUT4(DDR_PLL_CFG, 0x12c220);	// configure DDR PLL for 1067MHZ with 33.33MHz quartz
+//			US.PUT4(DDR_PLL_CTRL, 0x20011);	// divider = 32, bypass, reset
+//			US.PUT4(DDR_PLL_CTRL, US.GET4(DDR_PLL_CTRL) & ~1);	// deassert reset
+//			while (!US.BIT(PLL_STATUS, 1));	// wait to lock
+//			US.PUT4(DDR_PLL_CTRL, US.GET4(DDR_PLL_CTRL) & ~0x10);	// no bypass
+//			US.PUT4(DDR_CLK_CTRL, 0xc200003);	// 2x-divisor = 3, 3x-divisor = 2
 		
 			US.PUT4(IO_PLL_CFG, 0x1f42c0);	// configure IO PLL for 1000MHZ with 33.33MHz quartz
 			US.PUT4(IO_PLL_CTRL, 0x1e011);	// divider = 30, bypass, reset
