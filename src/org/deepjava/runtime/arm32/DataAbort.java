@@ -18,6 +18,8 @@
 
 package org.deepjava.runtime.arm32;
 
+import org.deepjava.runtime.Kernel;
+
 /*changes:
  * 09.09.2020	OST/Urs Graf	creation
  */
@@ -33,7 +35,8 @@ public class DataAbort extends ARMException implements Iarm32 {
 
 	static void dataAbort(Exception e) {
 		nofDataAbort++;
-		while (true);
+		Kernel.blink(1);
+		Kernel.blink(2);
 	}
 
 }
