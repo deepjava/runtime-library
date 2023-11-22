@@ -14,6 +14,8 @@ import org.deepjava.unsafe.arm.US;
  * Test application for the MicroZed adapter board. Use <i>flink2</i> configuration.<br>
  * <ul>
  *   <li>Connect digital IO as follows: IO0 with IO16</li>
+ *   <li>Connect PWM channel 1 to PPWA channel 2</li>
+ *   <li>Connect an encoder to FQD channel 3</li>
  *   <li>Connect the 8 channels of the ADC128S102 with an input voltage of 0 - 3.3V</li>
  *   <li>Connect the input of the ADC7476 with an input voltage of 0 - 3.3V</li>
  * </ul>

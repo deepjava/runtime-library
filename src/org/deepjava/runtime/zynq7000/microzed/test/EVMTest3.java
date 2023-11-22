@@ -5,23 +5,32 @@ import org.deepjava.flink.core.FlinkDevice;
 import org.deepjava.flink.subdevices.FlinkGPIO;
 import org.deepjava.runtime.arm32.Task;
 import org.deepjava.runtime.zynq7000.driver.UART;
+import org.deepjava.runtime.zynq7000.microzed.Kernel;
 import org.deepjava.runtime.zynq7000.microzed.driver.MIO_DIO;
 
 /**
- * Test program for MicroZed EVM and delta robot.
- * Delta robot must be loaded with https://github.com/eeduro/delta.git
- * Change to branch 'microzed'
- * Target tool point will be above U18/U15 on broad side and above G18/F20 on small side.
+ * Test program for MicroZed EVM and delta robot. Use flink1 configuration.
+ * Delta robot must be loaded with https://github.com/eeduro/delta.git, branch 'microzed'.
+ * Use eeros-scripts to make and deploy to sd card. The run command "sudo ./delta -c HwConfigBBBlue.json"
+ * has to be run from systemd service.
+ * The microzed board has to be placed under the delta robot so that the target tool point is
+ * above U18/U15 on broad side and above G18/F20 on small side.
+ * 
+ * The green led of the robot must be connected to microzed MIO pin 9. It signals that the robot has 
+ * connected the two test points. The red led of the robot must be connected to microzed MIO pin 0.
+ * It signals that a test sequence either on the broad or small side has started. 
  * 
  * @author urs.graf
  */
 public class EVMTest3 extends Task {
 	static FlinkGPIO gpio;
-	TestState state = TestState.STARTBROAD;
+	TestState state = TestState.FIRST;
 	PinState pinState;
 	int pin, mio;
 	boolean mioTest = true, broadSide = true;
 	int error = 0;
+	long startTime;
+	int count;
 	
 	private void mioTest() {
 		switch (pinState) {
@@ -100,14 +109,14 @@ public class EVMTest3 extends Task {
 				MIO_DIO.init(mio, false);
 				MIO_DIO.init(mio+1, false);
 				pinState = PinState.PUTHIGH;
-				state = TestState.PINSELECT;
+				state = TestState.PIN_SELECT;
 				mio++;
 			}
 			break;
 		}
 	}
 
-	private void pinTest() {
+	private void flinkGpioTest() {
 		switch (pinState) {
 		case PUTHIGH:
 			gpio.setDir(pin, false);	
@@ -184,7 +193,7 @@ public class EVMTest3 extends Task {
 				gpio.setDir(pin, false);
 				gpio.setDir(pin+1, false);
 				pinState = PinState.PUTHIGH;
-				state = TestState.PINSELECT;
+				state = TestState.PIN_SELECT;
 				pin++;
 			}
 			break;
@@ -193,17 +202,59 @@ public class EVMTest3 extends Task {
 	
 	public void action() {
 		switch (state) {
-		case STARTBROAD:
+		case FIRST:
+			System.out.println("\n\nput evm with broad side under target tool point");
+			System.out.println("target tool point is approx. 1.3cm above U18/U15");
+			System.out.println("press blue button on delta to start testing broad side");
+			System.out.println("--------------------------or---------------------------");
+			System.out.println("put evm with small side under target tool point");
+			System.out.println("target tool point is approx. 1.3cm above G18/F20");
+			System.out.println("press green button on delta to start testing small side\n");
+			System.out.println("the red button will stop the robot immediately -> emergency mode");
+			System.out.println("the blue button will put it back to ready state");
+			state = TestState.START;
 			MIO_DIO.init(0, false);
 			MIO_DIO.init(9, false);
+			count = nofActivations;
+			break;
+		case START:	// make sure last sequence is finished
+			if (!MIO_DIO.in(0)) state = TestState.WAIT_START;
+			break;
+		case WAIT_START: // determine length of side signaling pulse
 			if (MIO_DIO.in(0)) {
-				state = TestState.PINSELECT;
+				startTime = Kernel.timeUs();
+				state = TestState.WAIT_SIDE;
+			}
+			break;
+		case WAIT_SIDE:
+			if (!MIO_DIO.in(9)) {
+				state = TestState.DETECT_SIDE;
+			}
+			break;
+		case DETECT_SIDE:
+			long diff = Kernel.timeUs() - startTime;
+//			System.out.println(diff);
+			if (diff > 200000) {
+				System.out.println("\nTest broad side");
+				broadSide = true; 
+				state = TestState.PIN_SELECT;
 				pinState = PinState.PUTHIGH;
 				mio = 10;	// start with MIO10
 				pin = 81;	// start with T10
+				mioTest = true;
+				error = 0;
+			} else {
+				System.out.println("\nTest small side");
+				broadSide = false;
+				state = TestState.PIN_SELECT;
+				pinState = PinState.PUTHIGH;
+				pin = 0;	// start with B19
+				mioTest = false;
+				error = 0;
 			}
 			break;
-		case PINSELECT:
+		case PIN_SELECT:
+			startTime = Task.time();
 			if (broadSide) {
 				if (mioTest) {
 					if (mio == 15) {
@@ -214,7 +265,7 @@ public class EVMTest3 extends Task {
 						System.out.print("/");
 						System.out.print(mio+1);
 						System.out.print(": ");
-						state = TestState.MIOTEST;
+						state = TestState.MIO_TEST;
 						pinState = PinState.PUTHIGH;				
 					}
 				} else {
@@ -230,18 +281,14 @@ public class EVMTest3 extends Task {
 						System.out.print("broad side test ended: nof error = ");
 						System.out.println(error);
 						System.out.println();
-						System.out.println("put evm with small side under target tool point");
-						System.out.println("target tool point is 1cm above G18/F20");
-						System.out.println("press blue button on delta to start testing small side");
-						broadSide = false;
-						state = TestState.ENDBROAD;
+						state = TestState.FIRST;
 					} else {
 						System.out.print("test gpio");
 						System.out.print(pin);
 						System.out.print("/");
 						System.out.print(pin+1);
 						System.out.print(": ");
-						state = TestState.PINTEST;
+						state = TestState.GPIO_PIN_TEST;
 						pinState = PinState.PUTHIGH;
 					}
 				}
@@ -264,39 +311,31 @@ public class EVMTest3 extends Task {
 					System.out.print("small side test ended: nof error = ");
 					System.out.println(error);
 					System.out.println();
-					state = TestState.ENDSMALL;
+					state = TestState.FIRST;
 				} else {
 					System.out.print("test gpio");
 					System.out.print(pin);
 					System.out.print("/");
 					System.out.print(pin+1);
 					System.out.print(": ");
-					state = TestState.PINTEST;
+					state = TestState.GPIO_PIN_TEST;
 					pinState = PinState.PUTHIGH;
 				}
 			}
 			break;
-		case MIOTEST:
+		case MIO_TEST:
+			if (Task.time() - startTime > 2000) {
+				System.out.println("Testing stopped");
+				state = TestState.FIRST;
+			}
 			mioTest();
 			break;
-		case PINTEST:
-			pinTest();
-			break;
-		case ENDBROAD:
-			if (!MIO_DIO.in(0)) {
-				state = TestState.STARTSMALL;
+		case GPIO_PIN_TEST:
+			if (Task.time() - startTime > 2000) {
+				System.out.println("Testing stopped");
+				state = TestState.FIRST;
 			}
-			break;
-		case STARTSMALL:
-			if (MIO_DIO.in(0)) {
-				state = TestState.PINSELECT;
-				pinState = PinState.PUTHIGH;
-				pin = 0;	// start with B19
-				error = 0;
-			}
-			break;
-		case ENDSMALL:
-			Task.remove(this);
+			flinkGpioTest();
 			break;
 		}
 	}
@@ -306,14 +345,9 @@ public class EVMTest3 extends Task {
 		uart1.start(115200, (short)0, (short)8);
 		System.out = new PrintStream(uart1.out);
 		System.err = System.out;
-		System.out.println("EVM Test");
+		System.out.println("\n\n\nEVM Test");
 		System.out.println("delta robot must be setup and homed, blue and green led must be on");
-		System.out.println("put evm with broad side under target tool point");
-		System.out.println("target tool point is 1cm above U18/U15");
 		System.out.println("connect cable A with MIO0 and cable B with MIO9");
-		System.out.println("insert sd card with EVTest program");
-		System.out.println("apply power to microzed board or press reset button");
-		System.out.println("press green button on delta to start testing broad side");
 //		FlinkDevice.getInstance().lsflink();
 		gpio = FlinkDevice.getGPIO();
 		
@@ -323,5 +357,5 @@ public class EVMTest3 extends Task {
 	}
 }
 
-enum TestState {STARTBROAD, PINSELECT, MIOTEST, PINTEST, ENDBROAD, STARTSMALL, ENDSMALL}
+enum TestState {FIRST, START, WAIT_START, WAIT_SIDE, DETECT_SIDE, PIN_SELECT, MIO_TEST, GPIO_PIN_TEST}
 enum PinState {PUTHIGH, CHECKHIGH, PUTLOW, CHECKLOW, REVPUTHIGH, REVCHECKHIGH, REVPUTLOW, REVCHECKLOW, WAITING}
