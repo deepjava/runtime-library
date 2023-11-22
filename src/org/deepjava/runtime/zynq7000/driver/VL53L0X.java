@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 - 2013 NTB University of Applied Sciences in Technology
+ * Copyright 2011 - 2023 NTB University of Applied Sciences in Technology
  * Buchs, Switzerland, http://www.ntb.ch/inf
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
  */
 package org.deepjava.runtime.zynq7000.driver;
 
-import org.deepjava.runtime.zynq7000.IrqInterrupt;
+import org.deepjava.runtime.arm32.Task;
 import org.deepjava.runtime.zynq7000.Izynq7000;
 import org.deepjava.runtime.zynq7000.microzed.Kernel;
 import org.deepjava.unsafe.US;
@@ -34,7 +34,7 @@ import org.deepjava.unsafe.US;
  *  	<li>CS  : MIO 13</li> 
  *	</ul>
  */
-public class VL53L0X extends IrqInterrupt implements Izynq7000{
+public class VL53L0X extends Task implements Izynq7000{
 	
 	private static final int MAX_SENSORS = 4;
 	private static final byte dataEmpty[] = new byte[] {0,0,0,0,0,0,0,0};
@@ -72,10 +72,9 @@ public class VL53L0X extends IrqInterrupt implements Izynq7000{
 		while ((Kernel.timeUs() - oldTime) < 10000) {}; // wait for 10 ms
 		write(b);
 		
-		// Initialize the SPI Interrupts
-		IrqInterrupt.install(this, 81);
-		// Write first bytes to trigger interrupt loop
-		write(dataEmpty);
+		//Task setup
+		period = 30;
+		Task.install(this);
 	}
 	
 	/**
@@ -83,11 +82,6 @@ public class VL53L0X extends IrqInterrupt implements Izynq7000{
 	 * Not to be called manually!
 	 */
 	public void action() {
-		// Clear Interrupts
-		US.PUT4(SPI1_SR, US.GET4(SPI1_SR));
-		// Disable Interrupts
-		US.PUT4(SPI1_IDR, 0x07);
-
 		// Read the amount of written Bytes from the RX Buffer
 		for (int i = 0; i < writtenBytes; i++) {
 			if(i < readBuffer.length)
