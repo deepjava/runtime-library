@@ -14,6 +14,7 @@ public class FlinkGPIO implements FlinkDefinitions {
 	/** Handle to the subdevice within our flink device */
 	public FlinkSubDevice dev;
 	private int valAddress;
+	private int dirAddress;
 	
 	/**
 	 * Creates a GPIO subdevice.
@@ -21,7 +22,8 @@ public class FlinkGPIO implements FlinkDefinitions {
 	 */
 	public FlinkGPIO(FlinkSubDevice dev) {
 		this.dev = dev;
- 		this.valAddress = ((dev.nofChannels-1) / REGISTER_WIDTH_BIT + 1) * REGISTER_WIDTH;
+		dirAddress = REGISTER_WIDTH;
+ 		valAddress = dirAddress + ((dev.nofChannels-1) / REGISTER_WIDTH_BIT + 1) * REGISTER_WIDTH;
 	}
 	
 	/**
@@ -32,10 +34,10 @@ public class FlinkGPIO implements FlinkDefinitions {
 	 * @param output false = input, true = output
 	 */
 	public void setDir(int channel, boolean output) {
-		int val = dev.read((channel / REGISTER_WIDTH_BIT) * REGISTER_WIDTH);
+		int val = dev.read(dirAddress + (channel / REGISTER_WIDTH_BIT) * REGISTER_WIDTH);
 		if (output) val = val | (1 << (channel % REGISTER_WIDTH_BIT));
 		else val = val & ~(1 << (channel % REGISTER_WIDTH_BIT));
-		dev.write((channel / REGISTER_WIDTH_BIT) * REGISTER_WIDTH, val);
+		dev.write(dirAddress + (channel / REGISTER_WIDTH_BIT) * REGISTER_WIDTH, val);
 	}
 	
 	/**
@@ -46,7 +48,7 @@ public class FlinkGPIO implements FlinkDefinitions {
 	 * @return false = input, true = output
 	 */
 	public boolean getDir(int channel) {
-		int val = dev.read((channel / REGISTER_WIDTH_BIT) * REGISTER_WIDTH);
+		int val = dev.read(dirAddress + (channel / REGISTER_WIDTH_BIT) * REGISTER_WIDTH);
 		return (val & (1 << (channel % REGISTER_WIDTH_BIT))) != 0;
 	}
 	

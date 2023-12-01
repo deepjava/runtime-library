@@ -8,6 +8,8 @@ import org.deepjava.flink.subdevices.FlinkGPIO;
 import org.deepjava.flink.subdevices.FlinkInfo;
 import org.deepjava.flink.subdevices.FlinkPPWA;
 import org.deepjava.flink.subdevices.FlinkPWM;
+import org.deepjava.flink.subdevices.FlinkStepperMotor;
+import org.deepjava.flink.subdevices.FlinkTCRT1000;
 import org.deepjava.flink.subdevices.FlinkUART;
 import org.deepjava.flink.subdevices.FlinkWatchdog;
 
@@ -156,6 +158,12 @@ public class FlinkDevice implements FlinkDefinitions {
 	 */
 	public static String idToCharArray(int id) {
 		switch(id) {
+		case INFO_DEVICE_ID:
+			return "INFO DEVICE";
+		case ANALOG_INPUT_INTERFACE_ID:
+			return "ANALOG INPUT";
+		case ANALOG_OUTPUT_INTERFACE_ID:
+			return "ANALOG OUTPUT";
 		case PWM_INTERFACE_ID:
 			return "PWM";
 		case GPIO_INTERFACE_ID:
@@ -168,12 +176,10 @@ public class FlinkDevice implements FlinkDefinitions {
 			return "UART";
 		case PPWA_INTERFACE_ID:
 			return "PPWA";
-		case ANALOG_INPUT_INTERFACE_ID:
-			return "ANALOG INPUT";
-		case ANALOG_OUTPUT_INTERFACE_ID:
-			return "ANALOG OUTPUT";
-		case INFO_DEVICE_ID:
-			return "INFO DEVICE";
+		case SENSOR_INTERFACE_ID:
+			return "SENSOR INPUT";
+		case STEPPER_MOTOR_INTERFACE_ID:
+			return "STEP MOTOR";
 		default:
 			return Integer.toString(id);
 		}	
@@ -321,6 +327,29 @@ public class FlinkDevice implements FlinkDefinitions {
 	public static FlinkUART getUART(int uartNr) {
 		FlinkSubDevice d = getInstance().getSubdeviceByType(UART_INTERFACE_ID);
 		if (d != null) return FlinkUART.getInstance(d, uartNr);
+		return null;
+	}
+
+	/**
+	 * Returns a {@link org.deepjava.flink.subdevices.FlinkTCRT1000}
+	 * subdevice if present in this flink device.
+	 * The subdevice is of type "SENSOR INPUT" with subtype 4. 
+	 * @return adc subdevice, null if not available
+	 */
+	public static FlinkTCRT1000 getTCRT1000() {
+		FlinkSubDevice d = getInstance().getSubdeviceByType(SENSOR_INTERFACE_ID, 4);
+		if (d != null) return new FlinkTCRT1000(d);
+		return null;
+	}
+
+	/**
+	 * Returns a {@link org.deepjava.flink.subdevices.FlinkStepperMotor} 
+	 * subdevice if present in this flink device.
+	 * @return stepper motor subdevice, null if not available
+	 */
+	public static FlinkStepperMotor getStepperMotor() {
+		FlinkSubDevice d = getInstance().getSubdeviceByType(STEPPER_MOTOR_INTERFACE_ID);
+		if (d != null) return new FlinkStepperMotor(d);
 		return null;
 	}
 

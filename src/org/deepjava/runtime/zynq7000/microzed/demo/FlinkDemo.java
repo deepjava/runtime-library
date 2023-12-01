@@ -19,6 +19,7 @@ public class FlinkDemo extends Task implements FlinkDefinitions {
 	static FlinkCounter fqd;
 	static FlinkPPWA ppwa;
 	static FlinkWatchdog wd;
+	static FlinkTCRT1000 tcrt1000;
 	
 	public void action() {
 		for (int i = 0; i <= 3; i++) {
@@ -28,7 +29,8 @@ public class FlinkDemo extends Task implements FlinkDefinitions {
 //		gpio.setValue(5, false);
 //		System.out.print(gpio.getValue(6)); System.out.print("\t");
 //		System.out.print(fqd.getValue(7)); System.out.println();
-		System.out.println(fqd.getCount(0));
+//		System.out.println(fqd.getCount(0));
+		System.out.println(tcrt1000.getValue(0));
 	}
 
 	static {
@@ -48,6 +50,7 @@ public class FlinkDemo extends Task implements FlinkDefinitions {
 		pwm = FlinkDevice.getPWM();
 		ppwa = FlinkDevice.getPPWA();
 		fqd = FlinkDevice.getCounter();
+		tcrt1000 = FlinkDevice.getTCRT1000();
 		
 //		for(int i = 0; i <= 5; i++) gpio.setDir(i, true);
 //		for(int i = 6; i <= 7; i++) gpio.setDir(i, false);
