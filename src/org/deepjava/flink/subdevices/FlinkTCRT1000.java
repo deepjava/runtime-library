@@ -13,7 +13,7 @@ public class FlinkTCRT1000 implements FlinkDefinitions {
 	private int mask;
 	
 	/**
-	 * Creates a ADC subdevice.
+	 * Creates a TCRT1000 subdevice.
 	 * @param dev handle to the subdevice
 	 */
 	public FlinkTCRT1000(FlinkSubDevice dev){

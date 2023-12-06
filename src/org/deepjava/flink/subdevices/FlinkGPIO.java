@@ -15,6 +15,7 @@ public class FlinkGPIO implements FlinkDefinitions {
 	public FlinkSubDevice dev;
 	private int valAddress;
 	private int dirAddress;
+	private static int BASE_CLOCK_ADDRESS = 0;
 	
 	/**
 	 * Creates a GPIO subdevice.
@@ -26,6 +27,14 @@ public class FlinkGPIO implements FlinkDefinitions {
  		valAddress = dirAddress + ((dev.nofChannels-1) / REGISTER_WIDTH_BIT + 1) * REGISTER_WIDTH;
 	}
 	
+	/**
+	 * Returns the base clock of the underlying hardware counter.
+	 * @return	the base clock in Hz.
+	 */
+	public int getBaseClock() {
+		return dev.read(BASE_CLOCK_ADDRESS);
+	}
+
 	/**
 	 * Sets the direction of a single channel within a GPIO subdevice. 
 	 * Each channel can work as either digital input or output. Channel number
